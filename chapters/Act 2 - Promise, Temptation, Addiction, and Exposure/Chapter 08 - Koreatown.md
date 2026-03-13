@@ -54,7 +54,7 @@ She looked at him for a moment, not intensely, just fully. “You really do look
 
 He smiled into his coffee.
 
-This, more than anything, unsettled him. Not her presence exactly. The lack of theatrical strain in it. He had spent enough years imagining this impossible encounter in the abstract to assume that if it ever happened, it would arrive dragging revelation, accusation, or some large and humiliating weather system behind it. Instead they were two middle-aged Koreans in a café making fun of each other’s faces.
+This, more than anything, unsettled him. Not her presence exactly. The lack of theatrical strain in it. He had spent enough years imagining this impossible encounter in the abstract to assume that if it ever happened, it would arrive dragging revelation, accusation, or some large and humiliating weather system behind it. Instead they were two middle-aged people in a café making fun of each other’s faces.
 
 It was almost rude of life to make the miraculous feel so normal.
 
