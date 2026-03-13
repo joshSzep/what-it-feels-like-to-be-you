@@ -233,7 +233,7 @@ Across the bottom of the screen, a graphic read:
 
 QUALIA LABS ANNOUNCES THE EMPATHY ENGINE
 
-For half a second Piyush thought, absurdly, that perhaps there had been some other Shelby, some other Qualia Labs, some other machine. Then the host said his name.
+For half a second Piyush thought, absurdly, that perhaps there had been some other Shelby, some other Qualia Labs, some other machine. Then the host said her name.
 
 “Joining us now is Shelby Vale, investor and cofounder of the company behind what may become one of the most important breakthroughs in mental health and human connection—”
 
