@@ -188,6 +188,12 @@ By ten-thirty the dinner rush had softened. At eleven fifteen, when he finally g
 
 The place was small enough that darkness did not make it feel mysterious, only undivided. Bed, kitchenette, chair, stacked books he had once intended to read in the order serious people recommended. The air still held the day’s trapped heat. On the counter sat the recovery workbook he had been pretending to use. Above the sink hung a cheap print of the ocean, bought because it had been on sale and because he liked walls that implied the possibility of elsewhere.
 
+There was a padded mailer on the floor just inside the door.
+
+No return address. His name on a thermal label. Light enough to be cheap, neat enough to feel deliberate.
+
+Marcus looked at it, then past it, then bent and picked it up anyway. Whatever was inside had almost no weight. He set it on the counter without opening it.
+
 He kicked off his shoes, drank water straight from the bottle in the fridge, and sat on the edge of the bed with the phone in his hand.
 
 There were nights when he could feel the old hunger arrive before it had words. Not hunger exactly. A thinning. A sense that his own life, once the shift ended and the room got quiet, was too narrow to carry him all the way to morning.
@@ -217,6 +223,8 @@ He stared at the screen.
 Inside, the message was almost blank.
 
 If you want to know what they made, start here.
+
+Use the relay.
 
 Below that, a link.
 
@@ -259,17 +267,37 @@ He clicked one almost at random.
 
 Nothing happened.
 
-Then the page prompted him to connect headphones.
+Then the page prompted him to pair a receiver.
 
-He laughed once under his breath, because even now the world wanted accessories.
+Marcus looked toward the counter.
 
-He reached into the bedside drawer, found the cheap wired pair he used when he couldn’t sleep, and plugged them into the phone.
+The padded mailer sat where he had dropped it, suddenly less innocent.
+
+He got up, brought it back to the bed, and tore it open with his thumb.
+
+Inside was a stripped-down rig: a matte-black elastic receiver band with two flat contact pads at the temples, a peel-and-stick patch for the side of the neck, a charging puck, and a card no bigger than a coaster.
+
+RECEIVER ONLY. STIM SIDE.
+
+NO SAFETIES.
+
+The wording was clinical enough to make the whole thing worse.
+
+Marcus turned the band over in his hands. It looked like somebody had built it out of stolen clinic parts and aftermarket neurofeedback gear, then sanded away anything that might identify where it came from.
+
+Another prompt appeared on the phone.
+
+Relay detected?
+
+His body had already answered yes.
 
 Another prompt.
 
-Sit still.
+Apply neck patch. Sit still.
 
 Marcus sat very still.
+
+He peeled the backing from the patch and pressed it to the side of his neck. Then he pulled the band over his head and settled the cold contact pads against his temples.
 
 He tapped the file again.
 
@@ -295,7 +323,7 @@ Marcus inhaled sharply.
 
 The effect lasted less than a minute. When it ended, the room rushed back in around him with humiliating speed—the cheap print, the warm air, the narrow bed, his own hands gripping the phone too tightly.
 
-He pulled the headphones off and sat there breathing.
+He tore the neck patch free, pulled off the receiver band, and sat there breathing.
 
 No one had touched him.
 

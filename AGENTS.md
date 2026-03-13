@@ -112,6 +112,8 @@ Use a plausible hard-SF explanation:
 - AI-derived person-independent affect mapping
 - stimulation of corresponding emotional-state patterns in the recipient
 
+Recorded sessions can later be replayed on stripped-down illicit receiver rigs that use only the stimulation side of the system, bypassing capture hardware and clinical safeguards.
+
 ### Subjective feel
 The onset feels **like déjà vu**.
 
@@ -231,7 +233,7 @@ Matt with Piyush at Griffith Park watching Piyush's children play.
 - **Core deprivation:** came from a poor and broken home
 - **Sexuality:** closeted gay man
 - **Reason he remains closeted:** his father was homophobic, and Marcus has spent his life trying to be the macho son his father wanted
-- **Relationship to the machine:** receives an anonymous email linking to illicit recorded emotional sessions
+- **Relationship to the machine:** receives an anonymous email linking to illicit recorded emotional sessions and a stripped-down black-market playback rig
 - **Function:** shows how borrowed feeling can become the ultimate drug when detached from real relationship
 
 ### Rachel

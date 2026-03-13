@@ -67,7 +67,7 @@ This outline is meant to preserve the core emotional logic already established:
 	- His life is emotionally constricted: he is closeted, lonely, and still shaped by a poor, broken home and a homophobic father whose idea of masculinity he still tries to perform.
 	- Watching the segment, he has a simple, vulnerable response: “I want this.”
 	- Later, he receives an anonymous email with the subject line: “What It Feels Like To Be You.”
-	- The email contains a link to a small illicit cache of recorded emotional sessions, apparently stolen from internal test data.
+	- The email contains a link to a small illicit cache of recorded emotional sessions, apparently stolen from internal test data, along with access to a stripped-down illegal playback rig.
 	- Marcus clicks the first recording: the feeling of having sex, not only as pleasure but as intimacy and release.
 - **Ending turn:** Marcus discovers the first black-market portal into borrowed feeling.
 
