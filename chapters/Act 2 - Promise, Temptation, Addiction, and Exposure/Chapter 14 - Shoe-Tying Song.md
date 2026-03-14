@@ -99,7 +99,7 @@ Lina said no one was discussing dog headsets before eight in the morning.
 
 Piyush asked Matt whether Rachel had slept.
 
-Matt said, “I think she lay down near the concept of sleep and glared at it until dawn.”
+Matt said, “I think she laid down near the concept of sleep and glared at it until dawn.”
 
 “That sounds like Rachel,” Lina said.
 
