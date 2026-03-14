@@ -162,6 +162,7 @@ Matt with Piyush at Griffith Park watching Piyush's children play.
 
 ### Matt
 - **Age:** 44
+- **Full name:** Matthew Ashford
 - **Profession:** AI researcher and neuroscientist
 - **Role:** co-creator of the Empathy Engine
 - **Present life:** brilliant, unstable, single, childless, worldly, inwardly lonely

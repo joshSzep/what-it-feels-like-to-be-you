@@ -20,7 +20,7 @@ Across from him sat the committee members in their various emotional relationshi
 
 When the chairwoman finished, she nodded toward him.
 
-“Dr. Anand, you may begin.”
+“Dr. Ashford, you may begin.”
 
 He looked down once at the pages in front of him.
 
@@ -50,7 +50,7 @@ He looked briefly toward the back wall rather than at any individual face.
 
 The first member recognized for questioning was a senator from Ohio who had spent the opening statement performing bipartisan seriousness with the alertness of a man hoping the clip might travel.
 
-“Dr. Anand,” he said, “do you believe your technology can help trauma victims?”
+“Dr. Ashford,” he said, “do you believe your technology can help trauma victims?”
 
 “Yes.”
 
@@ -84,7 +84,7 @@ The senator blinked once. “As of when?”
 
 The chairwoman intervened before the exchange could harden into cable.
 
-“Dr. Anand,” she said, “let’s be specific. In your view, what are the categories of harm we are dealing with?”
+“Dr. Ashford,” she said, “let’s be specific. In your view, what are the categories of harm we are dealing with?”
 
 This was a better question.
 
@@ -100,7 +100,7 @@ That one changed the room in a different way. Not because everyone agreed. Becau
 
 A representative from California, a former prosecutor with the unnerving habit of sounding least emotional when most angry, leaned toward her microphone.
 
-“Dr. Anand, a man is dead.”
+“Dr. Ashford, a man is dead.”
 
 Matt looked at her.
 
@@ -190,7 +190,7 @@ He heard Shelby move behind him.
 
 Or maybe he imagined it. It did not matter.
 
-The chairwoman looked down at her notes, then back up. “Dr. Anand, I want to ask you a question I believe the public is trying to answer through you. Not whether you think this technology has promise. Not whether it can be abused. We have heard both today. I want to know what you, as one of its creators, actually feel about it now.”
+The chairwoman looked down at her notes, then back up. “Dr. Ashford, I want to ask you a question I believe the public is trying to answer through you. Not whether you think this technology has promise. Not whether it can be abused. We have heard both today. I want to know what you, as one of its creators, actually feel about it now.”
 
 There it was.
 
