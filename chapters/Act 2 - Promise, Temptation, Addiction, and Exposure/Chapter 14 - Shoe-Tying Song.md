@@ -2,7 +2,7 @@
 
 Matt did not decide to go to Piyush’s house so much as fail, eventually, to invent a reason not to.
 
-After the day of Marcus and Rachel and Congress and replay boards and the phrase human soul for sale arriving in his head with the authority of a verdict, he had gone home and accomplished nothing except remaining there badly. He showered without feeling cleaner. He sat on the bed with his shoes still on and looked at the wall until the wall began to feel accusatory. He answered two texts, ignored fourteen, and slept in the fractured, humiliating way of people whose bodies have accepted exhaustion without granting rest.
+After the day of Marcus and Rachel and Congress and replay boards and the phrase human soul for sale arriving in his head with the authority of a verdict, collapse turned out to be mostly clerical. He showered without feeling cleaner. At one point he stood in his kitchen with the freezer open and no idea what he had been looking for. He sat on the bed with his shoes still on and watched Rachel's statement, then Marcus's session tags, then the congressional notice, until all three began to feel like one image wearing different clothes. He answered two texts, ignored fourteen, and slept in the fractured, humiliating way of people whose bodies have accepted exhaustion without granting rest.
 
 By morning his phone contained a small civilization of concern.
 
@@ -59,7 +59,15 @@ Mira, from the table, did not look up from her workbook. “That is still not wh
 
 “I know what you think it is.”
 
+For one ugly second Matt wanted the child to stop.
+
+Not because the song was bad. Because it was innocent, and innocence had become difficult to sit near.
+
+Then Nikhil looked at him with total expectation, and there was no dignified way to refuse a six-year-old offering.
+
 Matt laughed before he could stop himself.
+
+The laugh hurt on the way out. That was how he knew it was real.
 
 The sound surprised him enough that he almost looked around the room for whoever had made it.
 
@@ -126,9 +134,9 @@ Matt watched Piyush watching him.
 
 Not in an evaluative way. Not checking whether the social resuscitation was working. Just making room and keeping the room intact.
 
-Matt had always known, abstractly, that this was one of Piyush’s gifts. Stability not as dullness, but as active stewardship. The repetitive labor by which a household remained itself day after day. In younger years Matt had often mistaken that sort of life for a narrowing. A reduction of available possibility. A refusal of scale.
+He had spent years treating this part of Piyush’s life as the steadier, narrower one. The house. The routines. The repeating obligations. Important, yes, but not ultimate.
 
-Now, sitting at the table with a child singing about laces and a woman he had once thought of as Piyush-adjacent handing him more toast without any fuss, he was forced to consider the possibility that he had spent years slandering one of the deepest forms of human achievement because it lacked spectacle.
+Now, sitting at the table with a child singing about laces and a woman he had once thought of as Piyush-adjacent handing him more toast without any fuss, Matt saw the insult in that old hierarchy. This was not the reduced version of life after ambition. This was what ambition kept claiming it meant to serve.
 
 Nikhil finished the song and looked around, pleased enough with applause to consider art essentially solved.
 
@@ -192,7 +200,7 @@ There was no cruelty in her face. No absolution either. Just accuracy. It was st
 
 “No,” Matt said.
 
-She set a bowl into the rack. “That is different from saying all the good was fake.”
+She set a bowl into the rack. “That is different from saying all the good was fake. Or from letting the ugliest use decide what the whole thing means.”
 
 He looked at her fully then.
 
@@ -278,41 +286,29 @@ Not eggs or toast or school forms or backpack zippers.
 
 The emotional field beneath those things.
 
-The song arrived first, though not as melody. As delight. Small, unembarrassed, repetitive delight. The pleasure of a child so fully convinced of his own offering that performance and love had not yet learned to separate.
+The song arrived first, though not as melody. As offering. Small, repetitive, wholly unguarded delight. The emotional equivalent of a child tugging your sleeve until you turned toward him and agreed that what he had made mattered.
 
-Then came Piyush’s pride.
+Then Piyush’s pride came through, and Matt understood immediately that pride was too thin a word for it.
 
-Not proudness in the public sense. Not parental branding or sentimental display. Something quieter and more enveloping. The deep ordinary astonishment of loving a child’s ridiculous little song because the child had made it and then brought it to you with total trust that you would receive it as worth hearing.
+This was love made alert by fragility. The astonishment of being entrusted with something ridiculous and perfect and feeling, in the same instant, how temporary the voice singing it was. Childhood already moving away even as it announced itself. Joy braided to time.
 
 Matt’s breath changed.
 
-The feeling widened.
+The field widened.
 
-Nikhil’s song, yes. But also Mira’s dry corrections. Lina’s efficiency moving around the kitchen like a form of care that had ceased to need self-advertisement. The table. The lunchbox. The repeated minor logistics by which family life spent itself daily in unphotogenic devotion.
+Mira’s dry corrections. Lina’s competence moving through the kitchen like a practiced refusal of chaos. The lunchbox. The school form. The shoelaces. None of it background. Each small task lit from within by the same fierce fact: these were the daily motions by which people kept one another in the world.
 
-And running through all of it, inseparable from the love, was gratitude.
+And running through all of it, deeper than delight, was gratitude so intense it was almost grief.
 
-Piyush’s gratitude not for excellence or transcendence or even happiness in the large cinematic sense, but for recurrence. For the fact that these people existed again each morning. That the kitchen kept reappearing. That the children’s concerns were shoelaces, strawberries, school forms, and the tyranny of older siblings. That so much of what made life most worth keeping occurred below the threshold of significance where ambitious people usually learned to look.
+Not because Piyush was melancholy. Because he knew, in the ordinary animal way parents know, how much there now was to lose. Every plate, every joke, every repeated morning inconvenience had become charged by vulnerability. Family life was not soft focus. It was attachment under conditions of exposure.
 
-It struck Matt with humiliating force that he had spent years worshipping intensity because intensity announced itself loudly enough to flatter him.
+Matt felt, with humiliating force, how long he had let danger audition as meaning. He had spent years mistaking intensity for depth because intensity arrived loud, flattering, and self-interpreting. But this was deeper precisely because it asked more. To stay. To repeat. To be frightened by how much you loved and still keep making breakfast.
 
-But this—
+This did not flatter him.
 
-This did not flatter.
+It accused him.
 
-It steadied.
-
-Piyush’s emotional field kept opening beneath him in layers.
-
-Pride in the song.
-
-Love for Lina’s competence.
-
-Mild exhaustion.
-
-Fear of losing any of it.
-
-The almost holy smallness of tying a child’s shoe and knowing, at some level beneath thought, that this too was what a life was for.
+Still more came through beneath it: fatigue, yes, but willingly borne; trust in Lina; fear sharp enough to prove the love was real; the almost holy smallness of tying a child’s shoe and knowing that this too, not despite its ordinariness but because of it, was what a life was for.
 
 Matt felt tears start before he had assembled a philosophy to authorize them.
 
@@ -320,7 +316,7 @@ He did not see Nikhil. He did not hear the lyrics exactly. The machine did not w
 
 Ordinary rooted love was not the compromise people made after real life disappointed them.
 
-It was real life.
+It was where the real stakes had been all along.
 
 And he had mistaken spectacle for depth because spectacle had better lighting.
 
@@ -432,20 +428,18 @@ But the scale of the thing had changed back into human proportions.
 
 Or maybe he had.
 
-Driving home, Matt found himself thinking not about testimony strategy or committee language or Shelby’s inevitable calls, but about the phrase Piyush had not even needed to say aloud.
+Driving home, Matt found himself thinking not about testimony strategy or committee language or Shelby’s inevitable calls, but about the distance between two economies.
 
-Connection matters.
+On one side: prices beside stolen feelings.
 
-Not as slogan.
+On the other: a child singing about shoelaces to the people he trusted to listen.
 
-As discipline.
+One turned the interior life into inventory.
 
-As stewardship.
+The other made a life out of paying attention.
 
-As the answer to what empathy was for, if it was for anything good at all.
+By the time he reached his apartment, one obligation had become simple enough to trust.
 
-By the time he reached his apartment, he knew at least one thing with enough steadiness to trust it.
+When Congress put him under lights, he would not spend his intelligence protecting the machine from the truth.
 
-When he testified, he would not protect the machine from the truth.
-
-He would try, if he still could, to protect the truth from the machine.
+He would spend what remained of it trying to protect the truth from what the machine had become.
