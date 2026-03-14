@@ -11,6 +11,7 @@ Fifteen years in the future, neuroscientist Matthew Ashford helps build a machin
 
 - `./scripts/create_manuscript.sh` assembles `MANUSCRIPT.md` from the chapter files.
 - `./scripts/create_pdf.sh` renders `MANUSCRIPT.pdf` from `MANUSCRIPT.md` using `pandoc` and `pdflatex`, with `cover.png` as the opening page.
-- `./scripts/create_artifacts.sh` runs both steps in order.
+- `./scripts/create_website.sh` rebuilds the manuscript and PDF, generates a watercolor-styled `website/index.html`, copies `MANUSCRIPT.pdf`, `cover.png`, and `back.png` into `website/`, and packages the folder as `website.zip`.
+- `./scripts/create_artifacts.sh` runs the full build pipeline, including the website artifact.
 
-The PDF build requires `pandoc` and a LaTeX installation that provides `pdflatex`.
+The PDF build requires `pandoc` and a LaTeX installation that provides `pdflatex`. The website archive step uses the system archiver (`ditto` on macOS, or `zip` if available).

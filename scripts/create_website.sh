@@ -1,0 +1,1471 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd -- "$SCRIPT_DIR/.." && pwd)"
+CHAPTERS_DIR="$REPO_ROOT/chapters"
+MANUSCRIPT_FILE="$REPO_ROOT/MANUSCRIPT.md"
+PDF_FILE="$REPO_ROOT/MANUSCRIPT.pdf"
+COVER_FILE="$REPO_ROOT/cover.png"
+BACK_FILE="$REPO_ROOT/back.png"
+WEBSITE_DIR="$REPO_ROOT/website"
+ZIP_FILE="$REPO_ROOT/website.zip"
+BUILD_DIR="$(mktemp -d "$REPO_ROOT/.website-build.XXXXXX")"
+STAGING_WEBSITE_DIR="$BUILD_DIR/website"
+
+cleanup() {
+  rm -rf "$BUILD_DIR"
+}
+
+require_file() {
+  if [[ ! -f "$1" ]]; then
+    echo "Required file not found: $1" >&2
+    exit 1
+  fi
+}
+
+html_escape() {
+  sed \
+    -e 's/&/\&amp;/g' \
+    -e 's/</\&lt;/g' \
+    -e 's/>/\&gt;/g'
+}
+
+render_excerpt_html() {
+  local source_file="$1"
+  local paragraph_limit="$2"
+
+  awk -v limit="$paragraph_limit" '
+    function escape(text) {
+      gsub(/&/, "\\&amp;", text)
+      gsub(/</, "\\&lt;", text)
+      gsub(/>/, "\\&gt;", text)
+      return text
+    }
+    NR == 1 && /^# / {
+      next
+    }
+    {
+      if ($0 == "") {
+        if (paragraph != "") {
+          count++
+          printf "            <p>%s</p>\n", escape(paragraph)
+          paragraph = ""
+          if (count >= limit) {
+            exit
+          }
+        }
+        next
+      }
+
+      if (paragraph != "") {
+        paragraph = paragraph " " $0
+      } else {
+        paragraph = $0
+      }
+    }
+    END {
+      if (paragraph != "" && count < limit) {
+        printf "            <p>%s</p>\n", escape(paragraph)
+      }
+    }
+  ' "$source_file"
+}
+
+build_act_cards_html() {
+  local act_index=0
+  local act_dir=""
+  local chapter_file=""
+
+  for act_dir in "$CHAPTERS_DIR"/Act\ *; do
+    [[ -d "$act_dir" ]] || continue
+
+    act_index=$((act_index + 1))
+    local act_name="$(basename "$act_dir")"
+    local act_name_html="$(printf '%s' "$act_name" | html_escape)"
+    local chapter_total=0
+    local chapter_items=""
+
+    for chapter_file in "$act_dir"/Chapter\ *.md; do
+      [[ -f "$chapter_file" ]] || continue
+
+      chapter_total=$((chapter_total + 1))
+      local chapter_name="${chapter_file##*/}"
+      chapter_name="${chapter_name%.md}"
+
+      local chapter_name_html="$(printf '%s' "$chapter_name" | html_escape)"
+      chapter_items+="              <li>${chapter_name_html}</li>"$'\n'
+    done
+
+    cat <<EOF
+        <article class="act-card reveal">
+          <p class="act-index">Act ${act_index}</p>
+          <h3>${act_name_html}</h3>
+          <p class="act-meta">${chapter_total} chapters</p>
+          <ol class="chapter-list">
+${chapter_items}          </ol>
+        </article>
+EOF
+  done
+}
+
+archive_website() {
+  rm -f "$ZIP_FILE"
+
+  if command -v zip >/dev/null 2>&1; then
+    (
+      cd "$REPO_ROOT"
+      zip -Xqr "$(basename "$ZIP_FILE")" "$(basename "$WEBSITE_DIR")"
+    )
+    return
+  fi
+
+  if command -v ditto >/dev/null 2>&1; then
+    ditto -c -k --keepParent "$WEBSITE_DIR" "$ZIP_FILE"
+    return
+  fi
+
+  echo "Neither ditto nor zip is available to create $ZIP_FILE" >&2
+  exit 1
+}
+
+trap cleanup EXIT
+shopt -s nullglob
+
+"$SCRIPT_DIR/create_manuscript.sh"
+"$SCRIPT_DIR/create_pdf.sh"
+
+require_file "$MANUSCRIPT_FILE"
+require_file "$PDF_FILE"
+require_file "$COVER_FILE"
+require_file "$BACK_FILE"
+
+act_dirs=("$CHAPTERS_DIR"/Act\ *)
+if [[ ${#act_dirs[@]} -eq 0 ]]; then
+  echo "No act directories found in $CHAPTERS_DIR" >&2
+  exit 1
+fi
+
+chapter_count="$(find "$CHAPTERS_DIR" -type f -name 'Chapter *.md' | wc -l | tr -d ' ')"
+act_count="$(find "$CHAPTERS_DIR" -maxdepth 1 -type d -name 'Act *' | wc -l | tr -d ' ')"
+
+if [[ "$chapter_count" == "0" ]]; then
+  echo "No chapter files found in $CHAPTERS_DIR" >&2
+  exit 1
+fi
+
+chapter_one_file="$CHAPTERS_DIR/Act 1 - The Breakthrough Leaves the Lab/Chapter 01 - The Tip.md"
+require_file "$chapter_one_file"
+
+title="$(awk 'NR == 1 && /^# / { sub(/^# /, ""); print; exit }' "$MANUSCRIPT_FILE")"
+author="$(awk 'NR <= 6 && /^A Novel by / { sub(/^A Novel by /, ""); print; exit }' "$MANUSCRIPT_FILE")"
+opening_line="$(awk 'NR == 1 && /^# / { next } $0 != "" { print; exit }' "$chapter_one_file")"
+build_date="$(date '+%B %-d, %Y')"
+
+if [[ -z "$title" ]]; then
+  echo "Could not determine title from $MANUSCRIPT_FILE" >&2
+  exit 1
+fi
+
+if [[ -z "$author" ]]; then
+  author="Joshua Szepietowski"
+fi
+
+opening_line_html="$(printf '%s' "$opening_line" | html_escape)"
+excerpt_html="$(render_excerpt_html "$chapter_one_file" 5)"
+acts_html="$(build_act_cards_html)"
+
+mkdir -p "$STAGING_WEBSITE_DIR"
+cp "$PDF_FILE" "$STAGING_WEBSITE_DIR/MANUSCRIPT.pdf"
+cp "$COVER_FILE" "$STAGING_WEBSITE_DIR/cover.png"
+cp "$BACK_FILE" "$STAGING_WEBSITE_DIR/back.png"
+
+cat > "$STAGING_WEBSITE_DIR/index.html" <<EOF
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>${title}</title>
+  <meta name="description" content="A literary hard science-fiction novel by ${author} about the dangerous beauty of being truly understood.">
+  <meta name="theme-color" content="#faf5ec">
+  <style>
+    :root {
+      color-scheme: light;
+      --paper: #fcf5ea;
+      --paper-warm: #f3e7d7;
+      --paper-deep: #eadbc6;
+      --paper-ink: rgba(255, 251, 245, 0.84);
+      --ink: #2d2320;
+      --ink-soft: #6a5d56;
+      --ink-faint: #8b7d73;
+      --line: rgba(67, 49, 40, 0.12);
+      --rose: #cb8d7b;
+      --rose-deep: #ab6457;
+      --terracotta: #bb7663;
+      --sage: #91a392;
+      --sea: #7a98a1;
+      --gold: #c8a26b;
+      --moss: #7d9077;
+      --shadow: 0 32px 90px rgba(73, 50, 41, 0.17);
+      --shadow-soft: 0 18px 48px rgba(73, 50, 41, 0.1);
+      --paper-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7), 0 18px 38px rgba(76, 55, 44, 0.1);
+      --radius-xl: 34px;
+      --radius-lg: 26px;
+      --radius-md: 18px;
+      --radius-organic: 42px 26px 48px 30px / 30px 46px 28px 52px;
+      --radius-organic-alt: 28px 50px 24px 42px / 42px 24px 40px 28px;
+      --max-width: 1180px;
+      --font-display: "Iowan Old Style", "Baskerville", "Palatino Linotype", serif;
+      --font-body: "Avenir Next", "Optima", "Segoe UI", sans-serif;
+      --pointer-x: 0;
+      --pointer-y: 0;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: var(--font-body);
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 9% 14%, rgba(203, 141, 123, 0.24), transparent 24%),
+        radial-gradient(circle at 88% 16%, rgba(122, 152, 161, 0.26), transparent 21%),
+        radial-gradient(circle at 20% 82%, rgba(200, 162, 107, 0.16), transparent 25%),
+        radial-gradient(circle at 76% 74%, rgba(145, 163, 146, 0.18), transparent 24%),
+        linear-gradient(180deg, #fffaf1 0%, #f5ebdf 42%, #faf5ec 100%);
+      line-height: 1.65;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.24;
+      background-image:
+        linear-gradient(110deg, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0)),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 320 320'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.35' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='320' height='320' filter='url(%23n)' opacity='0.2'/%3E%3C/svg%3E");
+      mix-blend-mode: multiply;
+      z-index: -2;
+    }
+
+    body::after {
+      content: "";
+      position: fixed;
+      inset: -8%;
+      pointer-events: none;
+      opacity: 0.42;
+      background:
+        radial-gradient(circle at 24% 18%, rgba(203, 141, 123, 0.14), transparent 20%),
+        radial-gradient(circle at 72% 34%, rgba(122, 152, 161, 0.12), transparent 20%),
+        radial-gradient(circle at 60% 72%, rgba(145, 163, 146, 0.1), transparent 18%),
+        radial-gradient(circle at 18% 82%, rgba(200, 162, 107, 0.09), transparent 20%);
+      filter: blur(10px);
+      mix-blend-mode: multiply;
+      z-index: -1;
+    }
+
+    a {
+      color: inherit;
+    }
+
+    img {
+      display: block;
+      max-width: 100%;
+    }
+
+    .wash {
+      position: fixed;
+      border-radius: 42% 58% 55% 45% / 38% 34% 66% 62%;
+      filter: blur(46px);
+      pointer-events: none;
+      opacity: 0.54;
+      mix-blend-mode: multiply;
+      z-index: -1;
+      animation: drift 18s ease-in-out infinite alternate;
+    }
+
+    .wash-one {
+      top: 2vh;
+      left: -10vw;
+      width: 36vw;
+      height: 30vw;
+      min-width: 260px;
+      min-height: 220px;
+      background: radial-gradient(circle at 35% 30%, rgba(203, 141, 123, 0.7), rgba(203, 141, 123, 0.08) 70%);
+      transform: rotate(-10deg);
+    }
+
+    .wash-two {
+      top: 24vh;
+      right: -10vw;
+      width: 30vw;
+      height: 26vw;
+      min-width: 220px;
+      min-height: 200px;
+      background: radial-gradient(circle at 55% 42%, rgba(122, 152, 161, 0.6), rgba(122, 152, 161, 0.08) 70%);
+      animation-duration: 19s;
+      transform: rotate(16deg);
+    }
+
+    .wash-three {
+      bottom: 6vh;
+      left: 14vw;
+      width: 28vw;
+      height: 24vw;
+      min-width: 220px;
+      min-height: 180px;
+      background: radial-gradient(circle at 50% 50%, rgba(145, 163, 146, 0.5), rgba(145, 163, 146, 0.05) 72%);
+      animation-duration: 22s;
+      transform: rotate(-18deg);
+    }
+
+    .wash-four {
+      top: 56vh;
+      left: -6vw;
+      width: 24vw;
+      height: 18vw;
+      min-width: 180px;
+      min-height: 140px;
+      background: radial-gradient(circle at 48% 44%, rgba(200, 162, 107, 0.42), rgba(200, 162, 107, 0.04) 72%);
+      animation-duration: 24s;
+      transform: rotate(24deg);
+    }
+
+    .wash-five {
+      top: 70vh;
+      right: 6vw;
+      width: 22vw;
+      height: 18vw;
+      min-width: 170px;
+      min-height: 150px;
+      background: radial-gradient(circle at 42% 42%, rgba(187, 118, 99, 0.28), rgba(187, 118, 99, 0.02) 72%);
+      animation-duration: 21s;
+      transform: rotate(-28deg);
+    }
+
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      width: min(calc(100% - 32px), var(--max-width));
+      margin: 24px auto 0;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      background: linear-gradient(180deg, rgba(255, 251, 245, 0.8), rgba(247, 239, 228, 0.68));
+      border: 1px solid rgba(74, 54, 44, 0.08);
+      border-radius: 26px 42px 30px 44px / 24px 34px 28px 40px;
+      box-shadow: var(--paper-shadow);
+      overflow: hidden;
+    }
+
+    .site-header::before {
+      content: "";
+      position: absolute;
+      inset: -20% -10% 35% 18%;
+      background:
+        radial-gradient(circle at 18% 55%, rgba(203, 141, 123, 0.14), transparent 20%),
+        radial-gradient(circle at 72% 38%, rgba(122, 152, 161, 0.12), transparent 18%);
+      pointer-events: none;
+    }
+
+    .brand {
+      position: relative;
+      font-family: var(--font-display);
+      font-size: 1.02rem;
+      letter-spacing: 0.12em;
+      text-decoration: none;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .site-nav {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .site-nav a {
+      padding: 8px 14px;
+      text-decoration: none;
+      font-size: 0.95rem;
+      color: var(--ink-soft);
+      border-radius: 999px;
+      transition: background-color 180ms ease, color 180ms ease, transform 180ms ease;
+    }
+
+    .site-nav a:hover,
+    .site-nav a:focus-visible {
+      background: rgba(93, 80, 72, 0.08);
+      color: var(--ink);
+      transform: translateY(-1px);
+      outline: none;
+    }
+
+    main {
+      position: relative;
+      width: min(calc(100% - 32px), var(--max-width));
+      margin: 0 auto;
+      padding: 42px 0 88px;
+    }
+
+    .section {
+      margin-top: 34px;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.05fr) minmax(320px, 0.95fr);
+      gap: 34px;
+      align-items: center;
+      min-height: calc(100vh - 170px);
+      padding: 30px 0 10px;
+    }
+
+    .eyebrow {
+      margin: 0 0 14px;
+      font-size: 0.82rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--ink-soft);
+    }
+
+    h1,
+    h2,
+    h3 {
+      margin: 0;
+      font-family: var(--font-display);
+      font-weight: 600;
+      line-height: 1.05;
+    }
+
+    h1 {
+      font-size: clamp(3.2rem, 8vw, 6.4rem);
+      max-width: 10ch;
+      text-wrap: balance;
+    }
+
+    h2 {
+      font-size: clamp(2rem, 4vw, 3.3rem);
+      max-width: 14ch;
+      text-wrap: balance;
+    }
+
+    h3 {
+      font-size: 1.55rem;
+    }
+
+    p {
+      margin: 0;
+    }
+
+    .hero-copy {
+      position: relative;
+      padding: clamp(28px, 4vw, 42px);
+      background:
+        linear-gradient(180deg, rgba(255, 251, 245, 0.88), rgba(245, 236, 223, 0.74)),
+        rgba(255, 255, 255, 0.24);
+      border: 1px solid rgba(73, 55, 45, 0.08);
+      border-radius: var(--radius-organic);
+      box-shadow: var(--paper-shadow);
+      overflow: hidden;
+    }
+
+    .hero-copy::before {
+      content: "";
+      position: absolute;
+      inset: -10% 30% 52% -12%;
+      background: radial-gradient(circle at 42% 40%, rgba(203, 141, 123, 0.2), rgba(203, 141, 123, 0.02) 72%);
+      pointer-events: none;
+    }
+
+    .hero-copy::after {
+      content: "";
+      position: absolute;
+      right: -28px;
+      bottom: -24px;
+      width: 180px;
+      height: 120px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 40% 40%, rgba(122, 152, 161, 0.18), rgba(122, 152, 161, 0.02) 72%);
+      filter: blur(8px);
+      pointer-events: none;
+    }
+
+    .hero-tags {
+      position: relative;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 0 0 20px;
+    }
+
+    .hero-tags span {
+      display: inline-flex;
+      align-items: center;
+      min-height: 34px;
+      padding: 0 14px;
+      background: rgba(255, 250, 243, 0.78);
+      border: 1px solid rgba(74, 54, 44, 0.08);
+      border-radius: 999px;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+      color: var(--ink-soft);
+      font-size: 0.82rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .hero-tags span:nth-child(2) {
+      transform: rotate(-2deg);
+    }
+
+    .hero-tags span:nth-child(3) {
+      transform: rotate(2deg);
+    }
+
+    .hero-summary {
+      position: relative;
+      margin-top: 22px;
+      font-size: clamp(1.05rem, 2vw, 1.24rem);
+      color: #5d514b;
+      max-width: 54ch;
+    }
+
+    h1::after,
+    .section-heading h2::after,
+    .story-copy h2::after,
+    .reader-top h2::after {
+      content: "";
+      display: block;
+      width: min(180px, 46%);
+      height: 14px;
+      margin-top: 18px;
+      border-radius: 999px 18px 999px 22px;
+      background: linear-gradient(90deg, rgba(203, 141, 123, 0.58), rgba(122, 152, 161, 0.24));
+      opacity: 0.72;
+    }
+
+    .cta-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      margin-top: 28px;
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 50px;
+      padding: 0 22px;
+      border-radius: 999px;
+      border: 1px solid rgba(62, 44, 35, 0.1);
+      text-decoration: none;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+      transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease, background-color 180ms ease;
+      box-shadow: 0 14px 30px rgba(73, 50, 41, 0.1);
+    }
+
+    .button:hover,
+    .button:focus-visible {
+      transform: translateY(-2px);
+      outline: none;
+      box-shadow: 0 18px 34px rgba(74, 54, 44, 0.14);
+    }
+
+    .button-primary {
+      background: linear-gradient(135deg, rgba(203, 141, 123, 0.96), rgba(171, 100, 87, 0.96) 58%, rgba(200, 162, 107, 0.96));
+      color: #fffaf7;
+    }
+
+    .button-secondary {
+      background: rgba(255, 251, 245, 0.78);
+      color: var(--ink);
+    }
+
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+      margin-top: 34px;
+      max-width: 640px;
+    }
+
+    .stat-card {
+      padding: 18px 18px 16px;
+      background: rgba(255, 250, 244, 0.74);
+      border: 1px solid rgba(70, 52, 41, 0.08);
+      border-radius: 22px 28px 20px 30px / 20px 26px 24px 32px;
+      box-shadow: var(--paper-shadow);
+    }
+
+    .stat-card:nth-child(2) {
+      transform: translateY(8px) rotate(-1deg);
+    }
+
+    .stat-card:nth-child(3) {
+      transform: translateY(-2px) rotate(1deg);
+    }
+
+    .stat-card dt {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: var(--ink-soft);
+    }
+
+    .stat-card dd {
+      margin: 10px 0 0;
+      font-family: var(--font-display);
+      font-size: 1.8rem;
+    }
+
+    .hero-visual {
+      position: relative;
+      perspective: 1200px;
+    }
+
+    .book-stage {
+      position: relative;
+      padding: clamp(26px, 5vw, 42px);
+      border-radius: 48px 30px 56px 30px / 30px 54px 34px 58px;
+      background:
+        radial-gradient(circle at 18% 20%, rgba(255, 255, 255, 0.92), transparent 24%),
+        radial-gradient(circle at 82% 22%, rgba(122, 152, 161, 0.16), transparent 22%),
+        radial-gradient(circle at 28% 76%, rgba(203, 141, 123, 0.14), transparent 22%),
+        linear-gradient(180deg, rgba(255, 252, 247, 0.86), rgba(243, 233, 218, 0.74));
+      border: 1px solid rgba(76, 58, 49, 0.08);
+      box-shadow: var(--shadow), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+      transform: rotateX(calc(var(--pointer-y) * -5deg)) rotateY(calc(var(--pointer-x) * 8deg));
+      transform-style: preserve-3d;
+      transition: transform 220ms ease;
+      overflow: hidden;
+    }
+
+    .book-stage::before,
+    .book-stage::after {
+      content: "";
+      position: absolute;
+      border-radius: 999px;
+      filter: blur(26px);
+      opacity: 0.65;
+      mix-blend-mode: multiply;
+    }
+
+    .book-stage::before {
+      width: 260px;
+      height: 220px;
+      top: -36px;
+      right: -42px;
+      background: radial-gradient(circle at 40% 40%, rgba(203, 141, 123, 0.5), rgba(203, 141, 123, 0.05) 72%);
+    }
+
+    .book-stage::after {
+      width: 240px;
+      height: 240px;
+      bottom: -48px;
+      left: -42px;
+      background: radial-gradient(circle at 55% 45%, rgba(122, 152, 161, 0.44), rgba(122, 152, 161, 0.04) 74%);
+    }
+
+    .pigment-notes {
+      position: absolute;
+      top: 22px;
+      right: 22px;
+      display: grid;
+      gap: 12px;
+      z-index: 3;
+    }
+
+    .pigment-notes span {
+      display: block;
+      width: 72px;
+      height: 18px;
+      border-radius: 999px 18px 999px 22px;
+      opacity: 0.75;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45);
+    }
+
+    .pigment-notes span:nth-child(1) {
+      background: linear-gradient(90deg, rgba(203, 141, 123, 0.72), rgba(203, 141, 123, 0.08));
+      transform: rotate(-7deg);
+    }
+
+    .pigment-notes span:nth-child(2) {
+      background: linear-gradient(90deg, rgba(122, 152, 161, 0.72), rgba(122, 152, 161, 0.08));
+      transform: rotate(6deg);
+    }
+
+    .pigment-notes span:nth-child(3) {
+      background: linear-gradient(90deg, rgba(200, 162, 107, 0.68), rgba(200, 162, 107, 0.08));
+      transform: rotate(-3deg);
+    }
+
+    .book-stack {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 640px;
+      padding-bottom: 34px;
+    }
+
+    .cover-card {
+      position: relative;
+      width: min(72%, 420px);
+      padding: 12px;
+      background: rgba(255, 251, 245, 0.82);
+      border: 1px solid rgba(70, 52, 41, 0.08);
+      border-radius: 28px 22px 30px 24px / 22px 28px 24px 30px;
+      overflow: hidden;
+      box-shadow: 0 24px 80px rgba(45, 29, 23, 0.22);
+    }
+
+    .cover-card::after {
+      content: "";
+      position: absolute;
+      inset: auto 10px 6px auto;
+      width: 120px;
+      height: 54px;
+      background: radial-gradient(circle at 45% 45%, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0) 72%);
+      pointer-events: none;
+    }
+
+    .cover-card img {
+      aspect-ratio: 2 / 3;
+      object-fit: cover;
+      border-radius: 18px;
+    }
+
+    .cover-card.back {
+      position: absolute;
+      right: 2%;
+      bottom: 11%;
+      width: min(58%, 320px);
+      transform: rotate(12deg) translateZ(-50px);
+      opacity: 0.9;
+    }
+
+    .cover-card.front {
+      transform: rotate(-7deg) translateY(-26px);
+      z-index: 2;
+    }
+
+    .brush-note {
+      position: absolute;
+      left: 2%;
+      bottom: 2px;
+      width: min(74%, 370px);
+      padding: 20px 22px;
+      background: linear-gradient(180deg, rgba(255, 252, 247, 0.92), rgba(245, 236, 224, 0.82));
+      border: 1px solid rgba(72, 52, 41, 0.08);
+      border-radius: 22px 30px 18px 34px / 18px 24px 28px 28px;
+      box-shadow: 0 18px 34px rgba(74, 54, 44, 0.16);
+      transform: rotate(-2deg);
+      z-index: 3;
+    }
+
+    .brush-note::before {
+      content: "";
+      position: absolute;
+      inset: -8px 22px auto auto;
+      width: 108px;
+      height: 36px;
+      background: linear-gradient(90deg, rgba(200, 162, 107, 0.38), rgba(200, 162, 107, 0.12));
+      border-radius: 999px;
+      opacity: 0.7;
+      z-index: -1;
+    }
+
+    .brush-note::after {
+      content: "";
+      position: absolute;
+      inset: auto 20px -16px auto;
+      width: 124px;
+      height: 58px;
+      background: radial-gradient(circle at 50% 50%, rgba(203, 141, 123, 0.28), rgba(203, 141, 123, 0.02) 72%);
+      filter: blur(12px);
+      z-index: -1;
+    }
+
+    .brush-quote {
+      font-family: var(--font-display);
+      font-size: 1.18rem;
+      line-height: 1.5;
+    }
+
+    .brush-caption {
+      margin-top: 10px;
+      color: var(--ink-soft);
+      font-size: 0.94rem;
+    }
+
+    .paper-panel,
+    .theme-card,
+    .excerpt-card,
+    .reader-panel,
+    .act-card {
+      position: relative;
+      padding: 28px;
+      background:
+        linear-gradient(180deg, rgba(255, 252, 246, 0.88), rgba(244, 234, 221, 0.74)),
+        rgba(255, 255, 255, 0.2);
+      border: 1px solid rgba(70, 52, 41, 0.08);
+      border-radius: var(--radius-organic-alt);
+      box-shadow: var(--paper-shadow);
+      overflow: hidden;
+    }
+
+    .paper-panel::before,
+    .theme-card::before,
+    .excerpt-card::before,
+    .reader-panel::before,
+    .act-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.32), transparent 45%);
+      pointer-events: none;
+    }
+
+    .paper-panel::after,
+    .theme-card::after,
+    .excerpt-card::after,
+    .reader-panel::after,
+    .act-card::after {
+      content: "";
+      position: absolute;
+      right: -22px;
+      bottom: -28px;
+      width: 180px;
+      height: 128px;
+      border-radius: 48% 52% 62% 38% / 38% 34% 66% 62%;
+      background: radial-gradient(circle at 38% 36%, rgba(203, 141, 123, 0.18), rgba(203, 141, 123, 0.02) 72%);
+      filter: blur(14px);
+      pointer-events: none;
+    }
+
+    .story-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(300px, 0.9fr);
+      gap: 22px;
+      align-items: start;
+    }
+
+    .story-copy h2,
+    .section-heading h2 {
+      max-width: 14ch;
+    }
+
+    .story-copy p + p,
+    .quote-panel p + p,
+    .theme-card p + p,
+    .excerpt-card p + p {
+      margin-top: 14px;
+    }
+
+    .quote-panel {
+      display: grid;
+      align-content: space-between;
+      background:
+        linear-gradient(180deg, rgba(255, 249, 243, 0.88), rgba(241, 232, 219, 0.72)),
+        rgba(255, 255, 255, 0.2);
+      margin-top: 36px;
+    }
+
+    blockquote {
+      margin: 14px 0 18px;
+      position: relative;
+      font-family: var(--font-display);
+      font-size: clamp(1.7rem, 3vw, 2.4rem);
+      line-height: 1.2;
+    }
+
+    blockquote::before {
+      content: "\201C";
+      position: absolute;
+      left: -0.12em;
+      top: -0.28em;
+      font-size: 2.8em;
+      line-height: 1;
+      color: rgba(171, 100, 87, 0.16);
+    }
+
+    .theme-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 20px;
+      align-items: start;
+    }
+
+    .theme-card h3,
+    .act-card h3 {
+      margin-bottom: 12px;
+    }
+
+    .theme-card p {
+      color: var(--ink-soft);
+    }
+
+    .theme-card:nth-child(1) {
+      transform: rotate(-1deg);
+    }
+
+    .theme-card:nth-child(2) {
+      transform: translateY(16px) rotate(1deg);
+    }
+
+    .theme-card:nth-child(2)::after,
+    .quote-panel::after,
+    .reader-panel::after {
+      background: radial-gradient(circle at 40% 38%, rgba(122, 152, 161, 0.18), rgba(122, 152, 161, 0.02) 72%);
+    }
+
+    .theme-card:nth-child(3) {
+      transform: rotate(1deg);
+    }
+
+    .theme-card:nth-child(3)::after {
+      background: radial-gradient(circle at 40% 38%, rgba(200, 162, 107, 0.2), rgba(200, 162, 107, 0.02) 72%);
+    }
+
+    .section-heading {
+      display: grid;
+      gap: 14px;
+      margin-bottom: 22px;
+    }
+
+    .section-heading h2,
+    .story-copy h2,
+    .reader-top h2 {
+      position: relative;
+    }
+
+    .acts-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 20px;
+    }
+
+    .act-index,
+    .act-meta {
+      color: var(--ink-soft);
+    }
+
+    .act-index {
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      font-size: 0.78rem;
+    }
+
+    .act-meta {
+      margin-top: 10px;
+      font-size: 0.95rem;
+    }
+
+    .act-card:nth-child(2) {
+      transform: translateY(14px);
+    }
+
+    .act-card:nth-child(3) {
+      transform: rotate(1deg);
+    }
+
+    .chapter-list {
+      margin: 20px 0 0;
+      padding-left: 20px;
+      color: var(--ink-soft);
+    }
+
+    .chapter-list li + li {
+      margin-top: 10px;
+    }
+
+    .excerpt-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+      gap: 22px;
+      align-items: start;
+    }
+
+    .excerpt-card {
+      background:
+        linear-gradient(180deg, rgba(255, 251, 245, 0.94), rgba(244, 234, 220, 0.76)),
+        rgba(255, 255, 255, 0.2);
+      transform: rotate(-1deg);
+    }
+
+    .excerpt-card p:not(.excerpt-kicker) {
+      color: #544945;
+      font-size: 1.02rem;
+    }
+
+    .excerpt-card p:nth-of-type(2)::first-letter {
+      float: left;
+      margin-right: 10px;
+      font-family: var(--font-display);
+      font-size: 4.6rem;
+      line-height: 0.84;
+      color: var(--rose-deep);
+    }
+
+    .excerpt-kicker {
+      color: var(--ink-soft);
+      font-size: 0.96rem;
+      margin-bottom: 18px;
+    }
+
+    .reader-layout {
+      display: grid;
+      gap: 22px;
+    }
+
+    .reader-panel {
+      padding: 28px;
+      background:
+        linear-gradient(180deg, rgba(255, 251, 245, 0.94), rgba(243, 233, 220, 0.8)),
+        rgba(255, 255, 255, 0.2);
+    }
+
+    .reader-top {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 22px;
+      flex-wrap: wrap;
+    }
+
+    .reader-frame {
+      min-height: 72vh;
+      border-radius: 26px 22px 30px 24px / 22px 28px 26px 30px;
+      overflow: hidden;
+      border: 1px solid rgba(67, 48, 39, 0.1);
+      background: rgba(255, 255, 255, 0.62);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.52), 0 18px 32px rgba(73, 50, 41, 0.08);
+    }
+
+    .reader-frame iframe {
+      width: 100%;
+      min-height: 72vh;
+      border: 0;
+      background: #fdfaf6;
+    }
+
+    .reader-note {
+      margin-top: 14px;
+      color: var(--ink-soft);
+      font-size: 0.95rem;
+    }
+
+    .site-footer {
+      width: min(calc(100% - 32px), var(--max-width));
+      margin: 0 auto 36px;
+      padding: 28px 30px 12px;
+      color: var(--ink-soft);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      flex-wrap: wrap;
+      background: rgba(255, 251, 245, 0.55);
+      border: 1px solid rgba(70, 52, 41, 0.08);
+      border-radius: 24px 38px 26px 36px / 22px 30px 26px 34px;
+      box-shadow: var(--paper-shadow);
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .footer-links a {
+      text-decoration: none;
+      border-bottom: 1px solid rgba(93, 80, 72, 0.24);
+      padding-bottom: 2px;
+    }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(28px);
+      transition: opacity 700ms ease, transform 700ms ease;
+    }
+
+    .reveal.is-visible {
+      opacity: 1;
+      transform: none;
+    }
+
+    @keyframes drift {
+      from {
+        transform: translate3d(0, 0, 0) scale(1);
+      }
+      to {
+        transform: translate3d(18px, -14px, 0) scale(1.04);
+      }
+    }
+
+    @media (max-width: 1120px) {
+      .hero,
+      .story-layout,
+      .excerpt-layout,
+      .theme-grid,
+      .acts-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .hero {
+        min-height: auto;
+        padding-top: 12px;
+      }
+
+      .hero-copy,
+      .section-heading h2,
+      .story-copy h2 {
+        max-width: none;
+      }
+
+      .book-stack {
+        min-height: 540px;
+      }
+
+      .cover-card.back {
+        right: 2%;
+      }
+
+      .quote-panel {
+        margin-top: 0;
+      }
+    }
+
+    @media (max-width: 760px) {
+      .site-header {
+        border-radius: 24px 30px 22px 34px / 22px 26px 24px 28px;
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .site-nav {
+        justify-content: flex-start;
+      }
+
+      main {
+        padding-top: 20px;
+      }
+
+      .section {
+        margin-top: 24px;
+      }
+
+      .paper-panel,
+      .theme-card,
+      .excerpt-card,
+      .reader-panel,
+      .act-card,
+      .book-stage {
+        border-radius: 24px 20px 28px 22px / 20px 28px 22px 30px;
+      }
+
+      .book-stack {
+        min-height: 440px;
+      }
+
+      .cover-card.front {
+        width: min(78%, 360px);
+      }
+
+      .cover-card.back {
+        width: min(62%, 260px);
+        bottom: 7%;
+      }
+
+      .brush-note {
+        position: relative;
+        width: 100%;
+        margin-top: 18px;
+        bottom: auto;
+        left: auto;
+      }
+
+      .stat-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .theme-card,
+      .act-card,
+      .excerpt-card,
+      .stat-card {
+        transform: none !important;
+      }
+
+      .cta-group,
+      .reader-top {
+        align-items: stretch;
+      }
+
+      .button {
+        width: 100%;
+      }
+
+      .reader-frame,
+      .reader-frame iframe {
+        min-height: 60vh;
+      }
+
+      .site-footer {
+        padding: 22px 20px 12px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html {
+        scroll-behavior: auto;
+      }
+
+      *,
+      *::before,
+      *::after {
+        animation: none !important;
+        transition-duration: 1ms !important;
+        transition-delay: 0ms !important;
+      }
+
+      .reveal {
+        opacity: 1;
+        transform: none;
+      }
+
+      .book-stage {
+        transform: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wash wash-one" aria-hidden="true"></div>
+  <div class="wash wash-two" aria-hidden="true"></div>
+  <div class="wash wash-three" aria-hidden="true"></div>
+  <div class="wash wash-four" aria-hidden="true"></div>
+  <div class="wash wash-five" aria-hidden="true"></div>
+
+  <header class="site-header">
+    <a class="brand" href="#top">${title}</a>
+    <nav class="site-nav" aria-label="Primary">
+      <a href="#story">Story</a>
+      <a href="#structure">Structure</a>
+      <a href="#excerpt">Excerpt</a>
+      <a href="#read">Read Free</a>
+    </nav>
+  </header>
+
+  <main id="top">
+    <section class="hero section">
+      <div class="hero-copy reveal is-visible">
+        <p class="eyebrow">A literary hard-science-fiction novel by ${author}</p>
+        <div class="hero-tags">
+          <span>Literary hard SF</span>
+          <span>Los Angeles, fifteen years ahead</span>
+          <span>Free digital edition</span>
+        </div>
+        <h1>${title}</h1>
+        <p class="hero-summary">Fifteen years in the future, neuroscientist Matthew Ashford helps build a machine that lets one person feel another's emotions. As the Empathy Engine leaves the lab and becomes a tool for healing, addiction, diplomacy, and power, he is forced to confront what human connection can and cannot be engineered.</p>
+        <div class="cta-group">
+          <a class="button button-primary" href="#read">Read the novel free</a>
+          <a class="button button-secondary" href="MANUSCRIPT.pdf" target="_blank" rel="noopener">Open the PDF</a>
+        </div>
+        <dl class="stat-grid">
+          <div class="stat-card">
+            <dt>Acts</dt>
+            <dd>${act_count}</dd>
+          </div>
+          <div class="stat-card">
+            <dt>Chapters</dt>
+            <dd>${chapter_count}</dd>
+          </div>
+          <div class="stat-card">
+            <dt>Emotional Horizon</dt>
+            <dd>Hope</dd>
+          </div>
+        </dl>
+      </div>
+
+      <div class="hero-visual reveal">
+        <div class="book-stage">
+          <div class="pigment-notes" aria-hidden="true">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+          <div class="book-stack">
+            <figure class="cover-card back">
+              <img src="back.png" alt="Back cover of ${title}">
+            </figure>
+            <figure class="cover-card front">
+              <img src="cover.png" alt="Front cover of ${title}">
+            </figure>
+            <div class="brush-note">
+              <p class="brush-quote">${opening_line_html}</p>
+              <p class="brush-caption">A restrained, intimate, and hopeful novel about empathy, privacy, grief, and chosen family.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="story" class="section story-layout">
+      <article class="paper-panel story-copy reveal">
+        <p class="eyebrow">The Story</p>
+        <h2>A breakthrough that can heal, expose, console, and ruin.</h2>
+        <p>The Empathy Engine does not read thoughts or replay memories. It transfers raw emotional state: the living pressure of grief, fear, tenderness, joy, shame, and love. That bounded miracle is exactly what makes it beautiful, and exactly what makes it dangerous.</p>
+        <p>What begins as a scientific triumph and a humanitarian promise becomes something larger and more volatile once it leaves the clinic. Therapy changes. Diplomacy changes. Addiction mutates. Privacy stops feeling private. The question beneath all of it is simple and human: how much of another person should ever be directly accessible?</p>
+      </article>
+
+      <article class="paper-panel quote-panel reveal">
+        <div>
+          <p class="eyebrow">A Turning Point</p>
+          <blockquote>“I thought only we buried children.”</blockquote>
+        </div>
+        <p>At the novel's hinge, grief crosses a geopolitical border and proves that empathy can widen the human imagination without solving the moral work that still has to follow.</p>
+      </article>
+    </section>
+
+    <section class="section theme-grid">
+      <article class="theme-card reveal">
+        <p class="eyebrow">Bounded Hard SF</p>
+        <h3>The machine transfers emotion, not thoughts.</h3>
+        <p>The speculative leap stays clean and rigorous. The wonder comes from a plausible device that is extraordinary precisely because it remains limited.</p>
+      </article>
+
+      <article class="theme-card reveal">
+        <p class="eyebrow">Relational Wonder</p>
+        <h3>Technology is not the destination.</h3>
+        <p>The deepest awe in this story is not the mechanism itself, but the fragile human possibility of being understood without turning intimacy into a commodity.</p>
+      </article>
+
+      <article class="theme-card reveal">
+        <p class="eyebrow">Uplifting Finish</p>
+        <h3>The novel ends in belonging.</h3>
+        <p>After scandal, grief, and public reckoning, the story lands in self-forgiveness, ethical purpose, and chosen family rather than spectacle or nihilism.</p>
+      </article>
+    </section>
+
+    <section id="structure" class="section">
+      <div class="section-heading reveal">
+        <p class="eyebrow">Structure</p>
+        <h2>Three acts, eighteen chapters, one year of widening consequence.</h2>
+        <p>From a celebratory steakhouse dinner in Los Angeles to a quiet final scene in Griffith Park, the novel tracks how a single invention changes public life while forcing its creator to confront the past he never resolved.</p>
+      </div>
+
+      <div class="acts-grid">
+${acts_html}      </div>
+    </section>
+
+    <section id="excerpt" class="section excerpt-layout">
+      <div class="section-heading reveal">
+        <p class="eyebrow">Opening Pages</p>
+        <h2>The novel begins in success, with danger already inside the room.</h2>
+        <p>These opening paragraphs set the emotional register: pride touched by dread, beauty shadowed by consequence, and a world that still feels recognizably human even as it tips into something new.</p>
+      </div>
+
+      <article class="excerpt-card reveal">
+        <p class="excerpt-kicker">From Chapter 01, “The Tip”</p>
+${excerpt_html}      </article>
+    </section>
+
+    <section id="read" class="section reader-layout">
+      <article class="reader-panel reveal">
+        <div class="reader-top">
+          <div>
+            <p class="eyebrow">Read Free</p>
+            <h2>The full digital manuscript is available here.</h2>
+          </div>
+          <div class="cta-group">
+            <a class="button button-primary" href="MANUSCRIPT.pdf" target="_blank" rel="noopener">Open full-screen</a>
+            <a class="button button-secondary" href="MANUSCRIPT.pdf" download>Download PDF</a>
+          </div>
+        </div>
+
+        <div class="reader-frame">
+          <iframe src="MANUSCRIPT.pdf#view=FitH" title="${title} PDF reader"></iframe>
+        </div>
+        <p class="reader-note">If your browser does not preview PDFs inline, use the full-screen or download buttons above. This website package also includes the cover and back-cover artwork for sharing or press use.</p>
+      </article>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>Built from the manuscript source on ${build_date}.</p>
+    <div class="footer-links">
+      <a href="cover.png" target="_blank" rel="noopener">Front cover</a>
+      <a href="back.png" target="_blank" rel="noopener">Back cover</a>
+      <a href="MANUSCRIPT.pdf" target="_blank" rel="noopener">Digital edition</a>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      var prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      var revealElements = document.querySelectorAll('.reveal');
+
+      if (!prefersReducedMotion && 'IntersectionObserver' in window) {
+        var observer = new IntersectionObserver(function (entries) {
+          entries.forEach(function (entry) {
+            if (entry.isIntersecting) {
+              entry.target.classList.add('is-visible');
+              observer.unobserve(entry.target);
+            }
+          });
+        }, {
+          threshold: 0.16,
+          rootMargin: '0px 0px -8% 0px'
+        });
+
+        revealElements.forEach(function (element, index) {
+          element.style.transitionDelay = String(Math.min(index % 4, 3) * 90) + 'ms';
+          observer.observe(element);
+        });
+      } else {
+        revealElements.forEach(function (element) {
+          element.classList.add('is-visible');
+        });
+      }
+
+      if (!prefersReducedMotion) {
+        window.addEventListener('pointermove', function (event) {
+          var x = (event.clientX / window.innerWidth) - 0.5;
+          var y = (event.clientY / window.innerHeight) - 0.5;
+          document.documentElement.style.setProperty('--pointer-x', x.toFixed(4));
+          document.documentElement.style.setProperty('--pointer-y', y.toFixed(4));
+        }, { passive: true });
+      }
+    }());
+  </script>
+</body>
+</html>
+EOF
+
+rm -rf "$WEBSITE_DIR"
+mv "$STAGING_WEBSITE_DIR" "$WEBSITE_DIR"
+archive_website
+
+echo "Wrote $WEBSITE_DIR/index.html"
+echo "Copied assets into $WEBSITE_DIR"
+echo "Wrote $ZIP_FILE"
