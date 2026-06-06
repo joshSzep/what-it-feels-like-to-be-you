@@ -4,7 +4,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd -- "$SCRIPT_DIR/.." && pwd)"
 INPUT_FILE="$REPO_ROOT/MANUSCRIPT.md"
-OUTPUT_FILE="$REPO_ROOT/MANUSCRIPT.pdf"
+OUTPUT_FILE="$REPO_ROOT/What It Feels Like To Be You.pdf"
 COVER_FILE="$REPO_ROOT/cover.png"
 BUILD_DIR="$(mktemp -d "$REPO_ROOT/.pdf-build.XXXXXX")"
 NORMALIZED_MD="$BUILD_DIR/manuscript.normalized.md"

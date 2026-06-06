@@ -5,7 +5,10 @@ SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd -- "$SCRIPT_DIR/.." && pwd)"
 CHAPTERS_DIR="$REPO_ROOT/chapters"
 MANUSCRIPT_FILE="$REPO_ROOT/MANUSCRIPT.md"
-PDF_FILE="$REPO_ROOT/MANUSCRIPT.pdf"
+PDF_FILE="$REPO_ROOT/What It Feels Like To Be You.pdf"
+PDF_NAME="$(basename "$PDF_FILE")"
+EPUB_FILE="$REPO_ROOT/What It Feels Like To Be You.epub"
+EPUB_NAME="$(basename "$EPUB_FILE")"
 COVER_FILE="$REPO_ROOT/cover.png"
 BACK_FILE="$REPO_ROOT/back.png"
 WEBSITE_DIR="$REPO_ROOT/website"
@@ -134,9 +137,11 @@ shopt -s nullglob
 
 "$SCRIPT_DIR/create_manuscript.sh"
 "$SCRIPT_DIR/create_pdf.sh"
+"$SCRIPT_DIR/create_epub.sh"
 
 require_file "$MANUSCRIPT_FILE"
 require_file "$PDF_FILE"
+require_file "$EPUB_FILE"
 require_file "$COVER_FILE"
 require_file "$BACK_FILE"
 
@@ -176,7 +181,8 @@ excerpt_html="$(render_excerpt_html "$chapter_one_file" 5)"
 acts_html="$(build_act_cards_html)"
 
 mkdir -p "$STAGING_WEBSITE_DIR"
-cp "$PDF_FILE" "$STAGING_WEBSITE_DIR/MANUSCRIPT.pdf"
+cp "$PDF_FILE" "$STAGING_WEBSITE_DIR/$PDF_NAME"
+cp "$EPUB_FILE" "$STAGING_WEBSITE_DIR/$EPUB_NAME"
 cp "$COVER_FILE" "$STAGING_WEBSITE_DIR/cover.png"
 cp "$BACK_FILE" "$STAGING_WEBSITE_DIR/back.png"
 
@@ -1289,7 +1295,8 @@ cat > "$STAGING_WEBSITE_DIR/index.html" <<EOF
         <p class="hero-summary">Fifteen years in the future, neuroscientist Matthew Ashford helps build a machine that lets one person feel another's emotions. As the Empathy Engine leaves the lab and becomes a tool for healing, addiction, diplomacy, and power, he is forced to confront what human connection can and cannot be engineered.</p>
         <div class="cta-group">
           <a class="button button-primary" href="#read">Read the novel free</a>
-          <a class="button button-secondary" href="MANUSCRIPT.pdf" target="_blank" rel="noopener">Open the PDF</a>
+          <a class="button button-secondary" href="$PDF_NAME" target="_blank" rel="noopener">Open the PDF</a>
+          <a class="button button-secondary" href="$EPUB_NAME" download>Download EPUB</a>
         </div>
         <dl class="stat-grid">
           <div class="stat-card">
@@ -1398,15 +1405,16 @@ ${excerpt_html}      </article>
             <h2>The full digital manuscript is available here.</h2>
           </div>
           <div class="cta-group">
-            <a class="button button-primary" href="MANUSCRIPT.pdf" target="_blank" rel="noopener">Open full-screen</a>
-            <a class="button button-secondary" href="MANUSCRIPT.pdf" download>Download PDF</a>
+            <a class="button button-primary" href="$PDF_NAME" target="_blank" rel="noopener">Open full-screen</a>
+            <a class="button button-secondary" href="$PDF_NAME" download>Download PDF</a>
+            <a class="button button-secondary" href="$EPUB_NAME" download>Download EPUB</a>
           </div>
         </div>
 
         <div class="reader-frame">
-          <iframe src="MANUSCRIPT.pdf#view=FitH" title="${title} PDF reader"></iframe>
+          <iframe src="$PDF_NAME#view=FitH" title="${title} PDF reader"></iframe>
         </div>
-        <p class="reader-note">If your browser does not preview PDFs inline, use the full-screen or download buttons above. This website package also includes the cover and back-cover artwork for sharing or press use.</p>
+        <p class="reader-note">If your browser does not preview PDFs inline, use the full-screen or download buttons above. The EPUB is included for e-readers and offline reading, alongside the cover and back-cover artwork for sharing or press use.</p>
       </article>
     </section>
   </main>
@@ -1416,7 +1424,8 @@ ${excerpt_html}      </article>
     <div class="footer-links">
       <a href="cover.png" target="_blank" rel="noopener">Front cover</a>
       <a href="back.png" target="_blank" rel="noopener">Back cover</a>
-      <a href="MANUSCRIPT.pdf" target="_blank" rel="noopener">Digital edition</a>
+      <a href="$PDF_NAME" target="_blank" rel="noopener">Digital edition</a>
+      <a href="$EPUB_NAME" download>EPUB</a>
     </div>
   </footer>
 
