@@ -1426,6 +1426,7 @@ ${excerpt_html}      </article>
       <a href="back.png" target="_blank" rel="noopener">Back cover</a>
       <a href="$PDF_NAME" target="_blank" rel="noopener">Digital edition</a>
       <a href="$EPUB_NAME" download>EPUB</a>
+      <a href="https://joshszep.com" target="_blank" rel="noopener">Author book list</a>
     </div>
   </footer>
 
