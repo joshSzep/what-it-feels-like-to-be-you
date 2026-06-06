@@ -195,6 +195,8 @@ cat > "$STAGING_WEBSITE_DIR/index.html" <<EOF
   <title>${title}</title>
   <meta name="description" content="A literary hard science-fiction novel by ${author} about the dangerous beauty of being truly understood.">
   <meta name="theme-color" content="#faf5ec">
+  <link rel="icon" type="image/png" href="cover.png">
+  <link rel="apple-touch-icon" href="cover.png">
   <style>
     :root {
       color-scheme: light;
